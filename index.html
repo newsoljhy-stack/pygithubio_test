@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub Pages에서 파이썬 실행하기</title>
     
-    <!-- ⚡ pyscript.net 도메인을 완전히 버리고 글로벌 unpkg CDN으로 우회 교체 -->
-    <link rel="stylesheet" href="https://unpkg.com">
-    <script type="module" src="https://unpkg.com"></script>
+    <!-- ⚡ CORS 차단을 방지하기 위해 crossorigin 속성을 명시한 최 안정화 CDN -->
+    <link rel="stylesheet" href="https://cloudflare.com" crossorigin="anonymous" />
+    <script type="module" src="https://cloudflare.com" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -23,7 +23,7 @@
         잠시만 기다려주세요... 파이썬 환경을 로딩 중입니다.
     </div>
 
-    <!-- 🐍 파이썬 코드 영역 -->
+    <!-- 🐍 파이썬 스크립트 영역 -->
     <script type="py">
         from pyscript import document, when
 
