@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동적 애니메이션 시각화 - Moving Sine Wave</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; background-color: #f0f4f8; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h1 { margin-top: 0; color: #1e293b; font-size: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+        .control-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-weight: 600; font-size: 13px; color: #64748b; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .value-display { font-family: monospace; font-weight: bold; color: #0284c7; }
+        #canvas-container { text-align: center; background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        canvas { width: 100%; max-width: 740px; height: auto; display: block; margin: 0 auto; }
+        .info-text { font-size: 13px; color: #64748b; margin-top: 15px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌊 파이썬 스타일 실시간 동적 시각화 (Moving Sine Wave)</h1>
+    <p style="color: #64748b; margin-bottom: 20px;">시간(t)의 흐름에 따라 파형이 우측으로 계속 이동하는 실시간 애니메이션 장치입니다.</p>
+
+    <!-- 인터랙티브 슬라이더 패널 -->
+    <div class="control-panel">
+        <div class="control-group">
+            <label>진폭 (Amplitude): <span id="amp-val" class="value-display">1.0</span></label>
+            <input type="range" id="amp-slider" min="0.1" max="2.5" step="0.1" value="1.0">
+        </div>
+        <div class="control-group">
+            <label>주파수 (Frequency): <span id="freq-val" class="value-display">2.0</span></label>
+            <input type="range" id="freq-slider" min="0.5" max="8.0" step="0.1" value="2.0">
+        </div>
+        <div class="control-group">
+            <label>이동 속도 (Speed): <span id="speed-val" class="value-display">1.0</span></label>
+            <input type="range" id="speed-slider" min="0.0" max="3.0" step="0.1" value="1.0">
+        </div>
+    </div>
+
+    <!-- 애니메이션 그래프가 그려질 고정밀 캔버스 -->
+    <div id="canvas-container">
+        <canvas id="wave-canvas" width="1400" height="600"></canvas>
+    </div>
+
+    <div class="info-text">
+        <strong>💡 동적 수식 연산 제어 구조 (Dynamic Wave Formula):</strong><br>
+        수식: <strong>y = Amplitude × sin(2 × π × Frequency × x - Speed × time)</strong><br>
+        매 프레임마다 변수 <code>time</code>이 증가하며 파형의 위상(Phase)을 이동시킵니다. 슬라이더를 실시간으로 조작하여 파형을 변화시켜 보세요!
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const canvas = document.getElementById("wave-canvas");
+        const ctx = canvas.getContext("2d");
+        
+        const ampSlider = document.getElementById("amp-slider");
+        const freqSlider = document.getElementById("freq-slider");
+        const speedSlider = document.getElementById("speed-slider");
+        
+        const ampVal = document.getElementById("amp-val");
+        const freqVal = document.getElementById("freq-val");
+        const speedVal = document.getElementById("speed-val");
+
+        // 애니메이션 위상 변화를 추적할 시간 변수 (파이썬 프레임 카운터 역할)
+        let timeOffset = 0; 
+
+        function animate() {
+            const amplitude = parseFloat(ampSlider.value);
+            const frequency = parseFloat(freqSlider.value);
+            const speed = parseFloat(speedSlider.value);
+
+            // 숫자 레이블 실시간 업데이트
+            ampVal.innerText = amplitude.toFixed(1);
+            freqVal.innerText = frequency.toFixed(1);
+            speedVal.innerText = speed.toFixed(1);
+
+            // 1. 화면 지우기 및 배경 초기화
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 80;
+            
+            const graphWidth = width - padding * 2;
+            const graphHeight = height - padding * 2;
+            const centerY = height / 2;
+
+            // 2. 배경 모눈종이 격자선 그리기
+            ctx.strokeStyle = "#f1f5f9";
+            ctx.lineWidth = 2;
+            for (let i = 1; i < 6; i++) {
+                const y = padding + (graphHeight / 6) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+
+            // X축 기준선
+            ctx.strokeStyle = "#64748b";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(padding, centerY);
+            ctx.lineTo(width - padding, centerY);
+            ctx.stroke();
+
+            // Y축 기준선
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.stroke();
+
+            // 3. 실시간 위상이 반영된 데이터 플로팅 (Numpy 데이터 시뮬레이션)
+            ctx.strokeStyle = "#0284c7"; // 파이썬 기본 블루 테마 컬러
+            ctx.lineWidth = 6;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.beginPath();
+
+            const samples = 1000;
+            for (let i = 0; i <= samples; i++) {
+                const x_ratio = i / samples; // 0부터 1까지 linspace 생성
+                
+                // 🔄 핵심 동적 공식: 시간 변수(timeOffset)를 차감하여 우측으로 흘러가게 연산
+                const y_math = amplitude * Math.sin((2 * Math.PI * frequency * x_ratio) - timeOffset);
+
+                // 화면 픽셀 좌표계로 최종 매핑
+                const canvasX = padding + x_ratio * graphWidth;
+                const canvasY = centerY - (y_math * (graphHeight / 6));
+
+                if (i === 0) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+
+            // 4. 타이틀 텍스트 그리기
+            ctx.fillStyle = "#0f172a";
+            ctx.font = "bold 24px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Dynamic Wave Tracking Model", width / 2, padding - 20);
+
+            // 5. 프레임 갱신 (슬라이더 속도 값에 맞춰 흐름 속도 조절)
+            timeOffset += speed * 0.05;
+
+            // 브라우저가 화면을 새로 그릴 때마다 animate 함수를 반복 실행 (초당 60번)
+            requestAnimationFrame(animate);
+        }
+
+        // 애니메이션 최초 실행
+        animate();
+    });
+</script>
+
+</body>
+</html>
