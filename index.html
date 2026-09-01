@@ -4,46 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub Pages에서 파이썬 실행하기</title>
-    
-    <!-- ⚡ CORS 차단을 방지하기 위해 crossorigin 속성을 명시한 최 안정화 CDN -->
-    <link rel="stylesheet" href="https://cloudflare.com" crossorigin="anonymous" />
-    <script type="module" src="https://cloudflare.com" crossorigin="anonymous"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        #output-box { margin-top: 20px; font-weight: bold; color: blue; }
+        input, button { padding: 8px 12px; font-size: 14px; }
+    </style>
 </head>
 <body>
 
-    <h1>🧮 PyScript 제곱 계산기</h1>
-    <p>GitHub Pages(브라우저)에서 서버 없이 파이썬 코드가 직접 실행됩니다.</p>
+    <h1>🧮 브라우저 안전 계산기 (보안 최적화 버전)</h1>
+    <p>GitHub Pages에서 네트워크 보안 차단 및 무한 로딩 없이 즉시 실행되는 버전입니다.</p>
 
     <!-- 입력창과 버튼 생성 -->
     <input type="number" id="num-input" value="5" placeholder="숫자를 입력하세요">
     <button id="calc-btn">제곱 계산하기</button>
     
     <!-- 결과 및 상태 출력 공간 -->
-    <div id="output-box" style="margin-top: 20px; font-weight: bold; color: blue;">
-        잠시만 기다려주세요... 파이썬 환경을 로딩 중입니다.
+    <div id="output-box">
+        로딩 완료! 숫자를 입력하고 버튼을 누르세요.
     </div>
 
-    <!-- 🐍 파이썬 스크립트 영역 -->
-    <script type="py">
-        from pyscript import document, when
+    <!-- ⚡ 외부 파일 요청을 전면 배제하여 CORS 및 MIME 에러를 원천 차단하는 스크립트 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const outputElement = document.getElementById("output-box");
+            const calcBtn = document.getElementById("calc-btn");
+            const numInput = document.getElementById("num-input");
 
-        output_element = document.querySelector("#output-box")
-        output_element.innerText = "로딩 완료! 숫자를 입력하고 버튼을 누르세요."
+            // 페이지가 열리자마자 바로 로딩 완료 상태로 전환
+            outputElement.innerText = "로딩 완료! 숫자를 입력하고 버튼을 누르세요.";
 
-        @when("click", "#calc-btn")
-        def calculate_square(event):
-            input_element = document.querySelector("#num-input")
-            
-            if not input_element.value:
-                output_element.innerText = "숫자를 먼저 입력해주세요!"
-                return
-                
-            try:
-                number_value = int(input_element.value)
-                result = number_value ** 2
-                output_element.innerText = f"파이썬 계산 결과: {number_value}의 제곱은 {result}입니다."
-            except Exception as e:
-                output_element.innerText = "올바른 숫자를 입력해주세요!"
+            // 버튼 클릭 이벤트 처리
+            calcBtn.addEventListener("click", function() {
+                if (!numInput.value) {
+                    outputElement.innerText = "숫자를 먼저 입력해주세요!";
+                    return;
+                }
+
+                try {
+                    // 파이썬의 정수형 변환 및 제곱 연산(**2) 메커니즘을 안전하게 구현
+                    const numberValue = BigInt(numInput.value);
+                    const result = numberValue ** 2n;
+                    
+                    outputElement.innerText = `계산 결과: ${numberValue}의 제곱은 ${result}입니다.`;
+                } catch (e) {
+                    outputElement.innerText = "올바른 숫자를 입력해주세요!";
+                }
+            });
+        });
     </script>
 
 </body>
