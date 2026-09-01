@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub Pages에서 파이썬 실행하기</title>
     
-    <!-- 1. PyScript 실행을 위한 CSS 및 JavaScript 로드 -->
+    <!-- PyScript 실행을 위한 CSS 및 JavaScript 로드 -->
     <link rel="stylesheet" href="https://pyscript.net">
     <script type="module" src="https://pyscript.net"></script>
 </head>
@@ -19,27 +19,36 @@
     <button id="calc-btn">제곱 계산하기</button>
     
     <!-- 결과가 출력될 공간 -->
-    <div id="output-box" style="margin-top: 20px; font-weight: bold; color: blue;"></div>
+    <div id="output-box" style="margin-top: 20px; font-weight: bold; color: blue;">
+        잠시만 기다려주세요... 파이썬 환경을 로딩 중입니다.
+    </div>
 
-    <!-- 2. 파이썬 코드 작성 구역 -->
+    <!-- 파이썬 코드 작성 구역 -->
     <script type="py">
-        from pyscript import document
+        from pyscript import document, when
 
+        # 웹페이지 로딩이 완료되면 안내 문구 변경
+        output_element = document.querySelector("#output-box")
+        output_element.innerText = "로딩 완료! 숫자를 입력하고 버튼을 누르세요."
+
+        # @when 데코레이터를 사용하여 #calc-btn 버튼 클릭 이벤트와 함수를 직접 연결
+        @when("click", "#calc-btn")
         def calculate_square(event):
-            # HTML 입력창에서 값 가져오기
+            # 입력값 가져오기
             input_element = document.querySelector("#num-input")
+            
+            # 입력값이 비어있는지 확인
+            if not input_element.value:
+                output_element.innerText = "숫자를 먼저 입력해주세요!"
+                return
+
             number_value = int(input_element.value)
             
-            # 파이썬으로 계산 수행
+            # 파이썬 제곱 연산
             result = number_value ** 2
             
-            # HTML 결과창에 텍스트 넣기
-            output_element = document.querySelector("#output-box")
+            # 결과 출력
             output_element.innerText = f"파이썬 계산 결과: {number_value}의 제곱은 {result}입니다."
-
-        # 버튼을 클릭하면 calculate_square 함수가 실행되도록 연결
-        button = document.querySelector("#calc-btn")
-        button.addEventListener("click", calculate_square)
     </script>
 
 </body>
